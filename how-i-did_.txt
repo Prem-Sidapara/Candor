@@ -36,3 +36,31 @@ day 2:
             Feed
             PostCard
             
+
+
+day 3:
+
+            logic 
+            
+            check for existing token  {
+
+                get from localstorage 
+
+                if not in localStorage {
+                    generate a random token 
+                    databse me new user daalo
+                    insert ke baad vahi vaapis chahiye 
+
+                    localstorage me save karo
+
+                    vo hi return kardo
+
+                }
+                else {
+                    
+                    databse me us user ko fetch karo 
+                    jiska token match kare
+
+                    return karo 
+                }
+            }
