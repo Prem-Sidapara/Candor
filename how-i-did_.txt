@@ -64,3 +64,44 @@ day 3:
                     return karo 
                 }
             }
+
+
+
+day 4:
+
+            anonymous post creation with real-time feed banaya
+
+            pehle useIdentity hook banaya src/hooks/useIdentity.js
+                loading aur error state rakha — sirf user nahi, poora context return kiya
+                cancelled flag lagaya — React StrictMode double-invoke se bachane ke liye (cleanup)
+
+            fir Supabase me anonymous_users table create ki
+                kyunki identity.js us table me insert karta tha lekin table thi hi nahi
+                user_id column posts table mein bhi add kiya — foreign key ke saath
+                RLS policies improved ki dono tables pe —
+                    anonymous_users INSERT: sirf valid 36-char UUID token allow
+
+                    posts INSERT: user_id null nahi hona chahiye + anonymous_users me exist karna chahiye
+
+                ALTER PUBLICATION supabase_realtime ADD TABLE posts — realtime enable kiya
+
+            fir CreatePostModal component banaya src/components/CreatePostModal.jsx
+
+                MAX_CHARS = 500 rakha — Supabase ke DB constraint se match kiya
+                MIN_CHARS = 10 rakha — junk posts block karne ke liye
+                char counter lagaya — real-time dikhao kitna likha
+                isValid check — submit se pehle validate kiya
+                double-submit guard — submitting flag se
+                Escape key aur overlay click se modal band hota hai
+                optional chaining onPostCreated?.() — agar prop nahi diya toh crash nahi
+
+            fir Navbar me Post button wire kiya src/components/Navbar.jsx
+                showModal state rakha
+                button click pe modal open, onClose pe band
+
+            fir Feed improve kiya src/components/Feed.jsx
+                useCallback lagaya fetchPosts pe — stable reference ke liye (infinite loop avoid)
+                loading skeleton — blank screen nahi dikhti jab posts load ho rahi hain
+                empty state message add kiya
+                Supabase Realtime subscribe kiya — naya post aate hi feed automatically refresh
+                cleanup me removeChannel — memory leak nahi hoga
