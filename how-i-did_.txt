@@ -105,3 +105,16 @@ day 4:
                 empty state message add kiya
                 Supabase Realtime subscribe kiya — naya post aate hi feed automatically refresh
                 cleanup me removeChannel — memory leak nahi hoga
+
+
+
+
+day 5: 
+            2x2 feed banaya
+
+            added accent gradient bar, topic chip, line clamp,
+            vote/comment counts, and hover lift animation
+            use numeric post.id modulo for accent color (charCodeAt crash)
+
+
+            
