@@ -37,9 +37,9 @@ function Feed() {
     }, [fetchPosts]);
 
     if (loading) return (
-        <div className="space-y-4 py-6">
-            {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 animate-pulse h-28" />
+        <div className="grid grid-cols-2 gap-4 py-6">
+            {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 animate-pulse h-40" />
             ))}
         </div>
     );
@@ -53,7 +53,7 @@ function Feed() {
     );
 
     return (
-        <div className="space-y-4 py-6">
+        <div className="grid grid-cols-2 gap-4 py-6">
             {posts.map((post) => (
                 <PostCard key={post.id} post={post} />
             ))}
