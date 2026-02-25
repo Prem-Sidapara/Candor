@@ -31,4 +31,11 @@ dist-ssr
 
 # OS Files (Optional but good)
 Thumbs.db
-Desktop.ini
+Desktop.
+
+
+# Supabase CLI temp files
+supabase/.temp/
+
+# One-time scripts (may contain credentials)
+retag-old-posts.js
