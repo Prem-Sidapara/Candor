@@ -191,4 +191,53 @@ day 6:
             👉know if a post was retroactively tagged vs tagged on creation
 
 
+            drop policy "Anyone can insert topics" on public.topics;
+            drop policy "Anyone can insert post_topics" on public.post_topics;
+
+
+
+Day 7: 
+
+            Votes 
+
+            create table public.post_votes (
+            post_id    bigint references public.posts(id) on delete cascade,
+            user_id    uuid references public.anonymous_users(id) on delete cascade,
+            vote_type  text check (vote_type in ('up', 'down')) not null,
+            created_at timestamp with time zone default timezone('utc', now()) not null,
+            primary key (post_id, user_id)
+            );
+
+            alter table public.post_votes enable row level security;
+            create policy "Anyone can view votes"   on public.post_votes for select using (true);
+            create policy "Anyone can insert vote"  on public.post_votes for insert with check (true);
+            create policy "Anyone can delete vote"  on public.post_votes for delete using (true);
+            create policy "Anyone can update vote"  on public.post_votes for update using (true);
+
+            
+            useVote hook banaya 
+
+            User clicks ▲ (upvote)
+                    ↓
+            castVote('up') called
+                    ↓
+            isVotingRef check → false → continue
+            isVotingRef = true (synchronous lock)
+                    ↓
+            stateRef se prevCounts, prevVote read
+            isToggle calculate
+                    ↓
+            dispatch(OPTIMISTIC) → UI instantly updates
+                    ↓
+            await: delete old vote (if any)
+            await: insert new vote (if not toggle)
+                    ↓
+                Success?          Failure?
+                ↓                  ↓
+            dispatch(SUCCESS)    dispatch(ROLLBACK)
+            isVoting: false      counts/userVote wapas
+                                error message set
+                    ↓
+            isVotingRef = false (lock release)
+
             
