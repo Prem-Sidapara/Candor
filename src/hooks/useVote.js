@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
  *  ✅ error state  — exposed so UI can show "Vote failed" feedback
  *  ✅ Optimistic UI with rollback
  *  ✅ Vote toggle (same vote = undo)
+ *  ✅ x-user-token header — RLS server-side token verification
  */
 
 // --- Pure reducer: all state transitions in one place ---
@@ -50,7 +51,7 @@ function reducer(state, action) {
     }
 }
 
-function useVote({ postId, initialUp = 0, initialDown = 0, myVote = null, userId }) {
+function useVote({ postId, initialUp = 0, initialDown = 0, myVote = null, userId, userToken = null }) {
 
     const [state, dispatch] = useReducer(reducer, {
         counts: { up: initialUp, down: initialDown },
@@ -86,7 +87,8 @@ function useVote({ postId, initialUp = 0, initialDown = 0, myVote = null, userId
                     .from('post_votes')
                     .delete()
                     .eq('post_id', postId)
-                    .eq('user_id', userId);
+                    .eq('user_id', userId)
+                    .headers(userToken ? { 'x-user-token': userToken } : {});
 
                 if (delErr) throw delErr;
             }
@@ -95,7 +97,8 @@ function useVote({ postId, initialUp = 0, initialDown = 0, myVote = null, userId
                 // Insert new vote
                 const { error: insErr } = await supabase
                     .from('post_votes')
-                    .insert({ post_id: postId, user_id: userId, vote_type: type });
+                    .insert({ post_id: postId, user_id: userId, vote_type: type })
+                    .headers(userToken ? { 'x-user-token': userToken } : {});
 
                 if (insErr) throw insErr;
             }
@@ -110,7 +113,7 @@ function useVote({ postId, initialUp = 0, initialDown = 0, myVote = null, userId
             isVotingRef.current = false;
         }
 
-    }, [postId, userId]); // ✅ Only stable values — no stale closure, no needless re-renders
+    }, [postId, userId, userToken]); // ✅ stable values — token included for header
 
     return {
         counts: state.counts,

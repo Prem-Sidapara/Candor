@@ -37,7 +37,7 @@ function voteButtonStyle(isActive, activeColor, activeBg, disabled) {
  *   userId  — anonymous_users.id (uuid) of the current user
  *   myVote  — 'up' | 'down' | null  (user's pre-existing vote, from Feed)
  */
-function PostCard({ post, userId, myVote = null }) {
+function PostCard({ post, userId, userToken = null, myVote = null }) {
     // ✅ accent lookup is deterministic — stable across renders
     const accent = ACCENTS[(post.id ?? 0) % ACCENTS.length];
 
@@ -47,6 +47,7 @@ function PostCard({ post, userId, myVote = null }) {
         initialDown: post.downvotes ?? 0,
         myVote,
         userId,
+        userToken,
     });
 
     // ✅ Computed values via useMemo — not recalculated on unrelated re-renders

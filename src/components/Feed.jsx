@@ -9,6 +9,7 @@ const initialState = {
     posts: [],
     myVotes: {},   // { [postId]: 'up' | 'down' }
     userId: null,
+    userToken: null, // secret_token — passed as request header for RLS
     loading: true,
     error: null,
 };
@@ -22,7 +23,7 @@ function reducer(state, action) {
             return { ...state, loading: false, error: action.message };
 
         case 'USER_READY':
-            return { ...state, userId: action.userId };
+            return { ...state, userId: action.userId, userToken: action.userToken };
 
         case 'MY_VOTES_LOADED':
             return { ...state, myVotes: action.map };
@@ -45,7 +46,7 @@ function reducer(state, action) {
 // ─── Feed ────────────────────────────────────────────────────────────────────
 function Feed() {
     const [state, dispatch] = useReducer(reducer, initialState);
-    const { posts, myVotes, userId, loading, error } = state;
+    const { posts, myVotes, userId, userToken, loading, error } = state;
 
     // ── Fetch initial posts ────────────────────────────────────────────────
     const fetchPosts = useCallback(async () => {
@@ -54,8 +55,12 @@ function Feed() {
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (error) dispatch({ type: 'ERROR', message: 'Posts load nahi hue. Refresh karo.' });
-        else dispatch({ type: 'LOADED', posts: data ?? [] });
+        if (error) {
+            console.error('[Feed] fetchPosts failed:', error.message, error);
+            dispatch({ type: 'ERROR', message: 'Posts load nahi hue. Refresh karo.' });
+        } else {
+            dispatch({ type: 'LOADED', posts: data ?? [] });
+        }
     }, []);
 
     // ── Fetch this user's existing votes ──────────────────────────────────
@@ -84,20 +89,23 @@ function Feed() {
         let cancelled = false;
 
         async function init() {
-            // 1. Resolve identity
-            try {
-                const user = await getOrCreateUser();
-                if (!cancelled) {
-                    dispatch({ type: 'USER_READY', userId: user.id });
-                    fetchMyVotes(user.id);
-                }
-            } catch (err) {
-                // Identity failure is non-fatal — feed still loads, votes just disabled
-                console.error('[Feed] Identity error:', err.message);
-            }
+            // ✅ Run identity + posts in PARALLEL — posts don't wait for identity
+            await Promise.all([
+                // Identity: non-fatal if it fails (votes just disabled)
+                getOrCreateUser()
+                    .then(user => {
+                        if (!cancelled) {
+                            dispatch({ type: 'USER_READY', userId: user.id, userToken: user.token });
+                            fetchMyVotes(user.id);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('[Feed] Identity error:', err.message);
+                    }),
 
-            // 2. Load posts
-            if (!cancelled) fetchPosts();
+                // Posts: always load regardless of identity
+                fetchPosts(),
+            ]);
         }
 
         init();
@@ -144,6 +152,7 @@ function Feed() {
                     key={post.id}
                     post={post}
                     userId={userId}
+                    userToken={userToken}
                     myVote={myVotes[post.id] ?? null}
                 />
             ))}

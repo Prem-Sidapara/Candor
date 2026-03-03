@@ -1,6 +1,5 @@
 import { supabase } from "./supabase";
 
-
 async function getOrCreateUser() {
 
     let token = localStorage.getItem("candor_token");
@@ -18,11 +17,11 @@ async function getOrCreateUser() {
             throw new Error('Failed to create user ' + error.message);
         }
 
-        localStorage.setItem('candor_token', token)
+        localStorage.setItem('candor_token', token);
 
+        // Return both id AND token — callers pass token as request header for RLS
         return { id: data.id, token };
-    }
-    else {
+    } else {
 
         const { data, error } = await supabase
             .from('anonymous_users')
@@ -34,8 +33,9 @@ async function getOrCreateUser() {
             throw new Error('User not found ' + error.message);
         }
 
-        return { id: data.id, token }
+        // Return both id AND token — callers pass token as request header for RLS
+        return { id: data.id, token };
     }
 }
 
-export default getOrCreateUser; 
+export default getOrCreateUser;
