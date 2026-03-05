@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useLayoutEffect } from 'react';
 import useVote from '../hooks/useVote';
 
 const ACCENTS = [
@@ -59,6 +59,16 @@ function PostCard({ post, userId, userToken = null, myVote = null }) {
     );
 
     const isDisabled = isVoting || userId == null;
+    const [expanded, setExpanded] = useState(false);
+    const [isTruncated, setIsTruncated] = useState(false);
+    const contentRef = useRef(null);
+
+    // useLayoutEffect = sync after DOM paint, so scrollHeight is already correct.
+    // max-height overflow (not webkit-line-clamp) keeps scrollHeight truthful in Chrome.
+    useLayoutEffect(() => {
+        const el = contentRef.current;
+        if (el) setIsTruncated(el.scrollHeight > el.clientHeight + 1);
+    }, [post.content]);
 
     const upStyle = useMemo(
         () => voteButtonStyle(userVote === 'up', '#7c3aed', '#ede9fe', isDisabled),
@@ -95,18 +105,37 @@ function PostCard({ post, userId, userToken = null, myVote = null }) {
                     </span>
                 )}
 
-                {/* Content — 5-line clamp */}
-                <p
-                    className="text-gray-800 text-sm leading-relaxed flex-1"
-                    style={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 5,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                    }}
-                >
-                    {post.content}
-                </p>
+                {/* Content — clamped with inline Read more toggle */}
+                <div className="text-gray-800 text-sm leading-relaxed flex-1">
+                    <span
+                        ref={contentRef}
+                        style={expanded ? { display: 'block' } : {
+                            display: 'block',
+                            overflow: 'hidden',
+                            maxHeight: '8.125em', // 5 lines × 1.625 line-height (leading-relaxed)
+                        }}
+                    >
+                        {post.content}
+                    </span>
+                    {isTruncated && (
+                        <button
+                            onClick={() => setExpanded(e => !e)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                padding: 0,
+                                cursor: 'pointer',
+                                color: '#7c3aed',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                display: 'inline',
+                                marginLeft: '4px',
+                            }}
+                        >
+                            {expanded ? 'show less' : '...read more'}
+                        </button>
+                    )}
+                </div>
 
                 {/* Image */}
                 {post.image_url && (
@@ -150,6 +179,7 @@ function PostCard({ post, userId, userToken = null, myVote = null }) {
                         ⚠️ {voteError}
                     </p>
                 )}
+
             </div>
         </div>
     );

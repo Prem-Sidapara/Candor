@@ -10,8 +10,12 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar onPostCreated={() => feedRefreshRef.current?.()} />
-      <main className="max-w-3xl mx-auto px-4">
+      <main className="max-w-[90vw] mx-auto px-4">
         <Feed onMountRefresh={(fn) => { feedRefreshRef.current = fn; }} />
+        <p style={{ textAlign: 'center', color: '#d1d5db', fontSize: '30px', padding: '12px 0 24px' }}>
+          🚧 voting &amp; comments are under development <br />
+          By the way you can still post. Have a good day!
+        </p>
       </main>
     </div>
   )

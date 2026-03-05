@@ -130,7 +130,7 @@ function Feed() {
 
     // ── Render states ─────────────────────────────────────────────────────
     if (loading) return (
-        <div className="grid grid-cols-2 gap-4 py-6">
+        <div className="grid grid-cols-4 gap-4 py-6 items-start">
             {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 animate-pulse h-40" />
             ))}
@@ -146,7 +146,7 @@ function Feed() {
     );
 
     return (
-        <div className="grid grid-cols-2 gap-4 py-6">
+        <div className="grid grid-cols-4 gap-4 py-6 items-start">
             {posts.map((post) => (
                 <PostCard
                     key={post.id}
